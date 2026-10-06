@@ -3,6 +3,7 @@ import {
     Search, UserCheck, Stethoscope, Ticket,
     Save, Printer, Clock, XCircle, AlertCircle
 } from 'lucide-react';
+import { queueService } from '../services/api';
 
 export default function PendaftaranPoli() {
     const [searchQuery, setSearchQuery] = useState('');
@@ -58,7 +59,7 @@ export default function PendaftaranPoli() {
         }
     };
 
-    const handleDaftar = (e) => {
+    const handleDaftar = async (e) => {
         e.preventDefault();
         if (!selectedPatient || !formData.poli || !formData.dokter) {
             alert('Mohon lengkapi pilihan Poli dan Dokter.');
@@ -74,22 +75,19 @@ export default function PendaftaranPoli() {
         const pendaftaranBaru = {
             idDaftar: `REG-${Date.now()}`,
             waktu: new Date().toLocaleString('id-ID'),
+            noAntrian: queueNumber,
             nomorAntrean: queueNumber,
+            noRm: selectedPatient.noRm,
+            namaPasien: selectedPatient.nama,
             pasien: selectedPatient,
             ...formData,
             status: 'Menunggu' // Status awal masuk ke halaman Antrean
         };
 
-        // Simpan ke LocalStorage utama (simrs_queue_data) agar terbaca oleh halaman Antrean & Dokter
-        const existingQueue = JSON.parse(localStorage.getItem('simrs_queue_data') || '[]');
-        localStorage.setItem('simrs_queue_data', JSON.stringify([...existingQueue, pendaftaranBaru]));
+        // Simpan ke API Backend Cloud Database & LocalStorage Fallback
+        await queueService.create(pendaftaranBaru);
 
-        if (navigator.onLine) {
-            alert('Pendaftaran berhasil dicatat dan disinkronkan ke server pusat.');
-        } else {
-            alert('Mode Offline 3T: Pendaftaran dan tiket antrean disimpan secara lokal.');
-        }
-
+        alert('Pendaftaran berhasil dicatat dan disinkronkan ke Database Cloud!');
         setGeneratedTicket(pendaftaranBaru);
     };
 

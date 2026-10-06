@@ -1,6 +1,7 @@
 import { useState } from 'react';
 import { FileText, Save } from 'lucide-react';
 import { useNavigate } from 'react-router-dom';
+import { patientService } from '../services/api';
 
 export default function InputPasien() {
     const navigate = useNavigate();
@@ -20,7 +21,7 @@ export default function InputPasien() {
     });
 
     // Fungsi simpan Master Data
-    const handleSaveData = (e) => {
+    const handleSaveData = async (e) => {
         e.preventDefault(); // Mencegah halaman reload otomatis
 
         // Validasi sederhana
@@ -40,16 +41,10 @@ export default function InputPasien() {
             timestamp: new Date().toISOString()
         };
 
-        // Simpan ke Master Data Pasien di LocalStorage (simrs_master_pasien)
-        const existingMaster = JSON.parse(localStorage.getItem('simrs_master_pasien') || '[]');
-        localStorage.setItem('simrs_master_pasien', JSON.stringify([...existingMaster, newPatient]));
+        // Simpan ke API Backend Cloud & LocalStorage Fallback
+        await patientService.create(newPatient);
 
-        if (navigator.onLine) {
-            console.log('Mengirim master data pasien ke server pusat...', newPatient);
-            alert(`Pasien berhasil didaftarkan!\nNomor RM: ${noRm}\nData disinkronkan ke server utama.`);
-        } else {
-            alert(`Mode Offline 3T.\nPasien berhasil didaftarkan!\nNomor RM: ${noRm}\nData disimpan secara lokal.`);
-        }
+        alert(`Pasien berhasil didaftarkan!\nNomor RM: ${noRm}\nData disinkronkan ke Database Cloud.`);
 
         // Reset formulir
         setFormData({

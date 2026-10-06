@@ -1,5 +1,6 @@
 import { useState, useEffect } from 'react';
 import { RefreshCw, Edit, Trash2, Plus, X } from 'lucide-react';
+import { patientService } from '../services/api';
 
 export default function DataPasien() {
     const [isModalOpen, setIsModalOpen] = useState(false);
@@ -17,10 +18,10 @@ export default function DataPasien() {
 
     const [isEditing, setIsEditing] = useState(false);
 
-    // Fungsi untuk menarik data dari Master Data (LocalStorage)
-    const loadPatients = () => {
-        const data = JSON.parse(localStorage.getItem('simrs_master_pasien') || '[]');
-        setPatients(data);
+    // Fungsi untuk menarik data dari Backend Cloud / LocalStorage
+    const loadPatients = async () => {
+        const data = await patientService.getAll();
+        setPatients(data || []);
     };
 
     // Muat data saat halaman pertama kali dibuka
